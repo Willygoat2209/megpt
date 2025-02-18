@@ -44,21 +44,38 @@
       displayMessage('You: ' + message);
       input.value = '';
       
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer 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'
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [{ role: 'user', content: message }]
-        })
-      });
-      
-      const data = await response.json();
-      const botReply = data.choices[0].message.content;
-      displayMessage('Bot: ' + botReply);
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer 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'
+          },
+          body: JSON.stringify({
+            model: 'gpt-3.5-turbo',
+            messages: [
+              { role: 'system', content: 'You are a helpful chatbot.' },
+              { role: 'user', content: message }
+            ]
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.choices && data.choices.length > 0) {
+          const botReply = data.choices[0].message.content;
+          displayMessage('Bot: ' + botReply);
+        } else {
+          displayMessage('Bot: No response received.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        displayMessage('Bot: Error communicating with AI.');
+      }
     }
 
     function displayMessage(msg) {
